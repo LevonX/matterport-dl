@@ -1,13 +1,26 @@
 
 const _hostRegex = new RegExp( /(https?:\/\/[^/]+)/,"i");
 
-window._replaceHost = function(str){
-	if (! str)
-		return str;
-	if (window._NoTilde)
-		str = str.replace("~","_")
-	return str.replace(_hostRegex,window._ProxyBase);
+window._replaceHost = function(str) {
+    if (!str) return str;
+    if (window._NoTilde)
+        str = str.replace("~", "_");
+
+    const pageID = window.location.pathname.replace(/\/$/, '').split('/').pop();
+
+    const urlParts = str.split('/');
+
+    const pathIndex = str.indexOf(urlParts[3]) !== -1 ? 3 : 2;
+
+    if (urlParts[pathIndex] !== pageID) {
+        urlParts.splice(pathIndex, 0, pageID);
+    }
+
+    const newUrl = urlParts.join('/');
+
+    return newUrl.replace(_hostRegex, window._ProxyBase);
 }
+
 window.nv_XMLHttpRequest = new Proxy(XMLHttpRequest, {
 	construct: function (target, args) {
 		const originalRequest = new target();
