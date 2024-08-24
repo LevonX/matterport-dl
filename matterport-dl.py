@@ -441,7 +441,7 @@ class ExceptionWhatExceptionTaskGroup(asyncio.TaskGroup):
 async def AsyncArrayDownload(assets: list[AsyncDownloadItem]):
     # with tqdm(total=(len(assets))) as pbar:
     async with ExceptionWhatExceptionTaskGroup() as tg:
-        for asset in tqdm(assets):
+        for asset in assets:
             # pbar.update(1)
             tg.create_task(downloadFile(asset.type, asset.shouldExist, asset.url, asset.file))
             await asyncio.sleep(0.001)  # we need some sleep or we will not yield
@@ -582,7 +582,7 @@ async def downloadCapture(pageid):
     if alias and not os.path.exists(alias):
         os.symlink(pageid, alias)
     os.chdir(pageid)
-    ROOT_FILE_COPY = ["JSNetProxy.js", "matterport-dl.py"]
+    ROOT_FILE_COPY = ["JSNetProxy.js"]
     for fl in ROOT_FILE_COPY:
         if not os.path.exists(fl):
             shutil.copy2(os.path.join(BASE_MATTERPORTDL_DIR, fl), fl)
@@ -765,7 +765,7 @@ async def AdvancedAssetDownload(base_page_text: str):
 
                 uris.sort()
 
-                for uri in tqdm(uris):
+                for uri in uris:
                     url = tilesetUrlTemplate.replace("<file>", uri)
                     try:
                         chunkBytes = await downloadFileAndGetText("ADV_TILESET_GLB", False, url, urlparse(url).path[1:], isBinary=True)
