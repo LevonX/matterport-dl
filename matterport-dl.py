@@ -501,6 +501,19 @@ async def downloadMainAssets(pageid, accessurl):
     await downloadUUID(accessurl, modeldata["job"]["uuid"])
     await downloadSweeps(accessurl, modeldata["sweeps"])
 
+async def downloadAttachments():
+    with open('api/mp/models/graph_GetModelViewPrefetch.json', "r", encoding="UTF-8") as mvp:
+        json_data = json.load(mvp)
+    try:
+        for mattertags in json_data['data']['model']['mattertags']:
+            try:
+                for attachment in mattertags['fileAttachments']:
+                    file_path = urllib.parse.urlparse(attachment['url']).path.removeprefix("/")
+                    await downloadFile("ATTACHMENTS", True, attachment['url'], file_path)
+            except KeyError:
+                continue
+    except KeyError:
+        return False
 
 # Patch showcase.js to fix expiration issue
 def patchShowcase():
@@ -666,6 +679,8 @@ async def downloadCapture(pageid):
     await downloadPlugins(pageid)
     mainMsgLog("Downloading images...")
     await downloadPics(pageid)
+    mainMsgLog("Downloading attachments...")
+    await downloadAttachments()
     if CLA.getCommandLineArg(CommandLineArg.MAIN_ASSET_DOWNLOAD):
         mainMsgLog("Downloading primary model assets...")
         await downloadMainAssets(pageid, accessurl)
