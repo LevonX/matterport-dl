@@ -526,6 +526,26 @@ async def downloadAttachments():
     except KeyError:
         return False
 
+async def patchGraphs(directory: str, pageID: str):
+    async def process_file(file_path: str):
+        async with aiofiles.open(file_path, mode='r', encoding='utf-8') as file:
+            content = await file.read()
+
+        modified_content = content.replace('~', '_')
+        modified_content = modified_content.replace('cdn-2.matterport.com', f'ep.matterport.host/{pageID}')
+
+        async with aiofiles.open(file_path, mode='w', encoding='utf-8') as file:
+            await file.write(modified_content)
+
+    tasks = []
+    for root, dirs, files in os.walk(directory):
+        for file_name in files:
+            if file_name.endswith('.modified.json'):
+                file_path = os.path.join(root, file_name)
+                tasks.append(process_file(file_path))
+
+    await asyncio.gather(*tasks)
+
 # Patch showcase.js to fix expiration issue
 def patchShowcase():
     showcaseJs = "js/showcase.js"
@@ -692,6 +712,8 @@ async def downloadCapture(pageid):
     await downloadPics(pageid)
     mainMsgLog("Downloading attachments...")
     await downloadAttachments()
+    mainMsgLog("Patch Graphs...")
+    await patchGraphs("api/mp/models", pageid)
     if CLA.getCommandLineArg(CommandLineArg.MAIN_ASSET_DOWNLOAD):
         mainMsgLog("Downloading primary model assets...")
         await downloadMainAssets(pageid, accessurl)

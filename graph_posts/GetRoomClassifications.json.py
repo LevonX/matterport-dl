@@ -1,0 +1,1 @@
+{"operationName":"GetRoomClassifications","variables":{},"query":"query GetRoomClassifications {\n  roomClassifications {\n    id\n    label\n    defaultKeywords\n    __typename\n  }\n}\n"}
