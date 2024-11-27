@@ -428,7 +428,7 @@ async def setAccessURLs(pageid):
         if True:
             filejson = response.json()
 
-            mainMsgLog(f"Try get accesskey: {url}, status: {response.status}")
+            mainMsgLog(f"Try get accesskey: {url}, status:")
             if i == 2:
                 # Обработка файла типа 2
                 accesskeys.append(filejson["base.url"].split("?")[-1])
@@ -438,7 +438,7 @@ async def setAccessURLs(pageid):
                 accesskeys.append(filejson["templates"][0].split("?")[-1])
                 mainMsgLog(f"Second accesskey: {accesskeys}")
         else:
-            mainMsgLog(f"Failed to fetch URL: {url}, status: {response.status}")
+            mainMsgLog(f"Failed to fetch URL: {url}, status:")
 
     # for i in range(1, 4):  # file to url mapping
     #     await downloadFile("FILE_TO_URL_JSON", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}", f"api/player/models/{pageid}/files_type{i}")
