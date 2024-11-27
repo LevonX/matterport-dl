@@ -176,8 +176,10 @@ async def downloadFileAndGetText(type, shouldExist, url, file, post_data=None, i
 
 
 # Add type parameter, shortResourcePath, shouldExist
-async def downloadFile(type, shouldExist, url, file, post_data=None, always_download=False):
-    global accesskeys, MAX_TASKS_SEMAPHORE, OUR_SESSION
+async def downloadFile(type, shouldExist, url, file, post_data=None, always_download=False, retrying=False):
+    global accesskeys, MAX_TASKS_SEMAPHORE, OUR_SESSION, pageId
+
+    mainMsgLog(f"LA: pageId: {pageId}, accesskeys: {accesskeys}")
     async with MAX_TASKS_SEMAPHORE:
         url = GetOrReplaceKey(url, False)
 
@@ -189,35 +191,46 @@ async def downloadFile(type, shouldExist, url, file, post_data=None, always_down
         if "?" in file:
             file = file.split("?")[0]
 
-        if not CLA.getCommandLineArg(CommandLineArg.DOWNLOAD) or (os.path.exists(file) and not always_download):  # skip already downloaded files except idnex.html which is really json possibly wit hnewer access keys?
+        if not CLA.getCommandLineArg(CommandLineArg.DOWNLOAD) or (os.path.exists(file) and not always_download):  # skip already downloaded files except index.html which is really json possibly with newer access keys?
             logUrlDownloadSkipped(type, file, url, "")
             return
         reqId = logUrlDownloadStart(type, file, url, "", shouldExist)
+
         try:
+            # Attempt initial download
             response = await OUR_SESSION.get(url)
-            response.raise_for_status()  # Raise an exception if the response has an error status code
+            response.raise_for_status()
             async with aiofiles.open(file, "wb") as f:
                 await f.write(response.content)
             logUrlDownloadFinish(type, file, url, "", shouldExist, reqId)
             return
         except Exception as err:
-            # Try again but with different accesskeys
+            # Log the first failure
+            logUrlDownloadFinish(type, file, url, "", shouldExist, reqId, err)
+
+            # Try with different accesskeys
             if "?t=" in url:
                 for accessurl in accesskeys:
-                    url2 = ""
+                    url2 = f"{url.split('?')[0]}?{accessurl}"
                     try:
-                        url2 = f"{url.split('?')[0]}?{accessurl}"
                         response = await OUR_SESSION.get(url2)
-                        response.raise_for_status()  # Raise an exception if the response has an error status code
-
+                        response.raise_for_status()
                         async with aiofiles.open(file, "wb") as f:
                             await f.write(response.content)
                         logUrlDownloadFinish(type, file, url2, "", shouldExist, reqId)
                         return
                     except Exception as err2:
                         logUrlDownloadFinish(type, file, url2, "", shouldExist, reqId, err2, True)
-                        pass
-            logUrlDownloadFinish(type, file, url, "", shouldExist, reqId, err)
+
+            # If still failing, try setting new access keys (if not already retried)
+            if not retrying and pageId is not None:
+                try:
+                    await setAccessURLs(pageId)
+                    return await downloadFile(type, shouldExist, url, file, always_download, retrying=True)
+                except Exception as set_err:
+                    logUrlDownloadFinish(type, file, url, "", shouldExist, reqId, set_err)
+
+            # Final failure
             raise err
 
 
@@ -407,12 +420,31 @@ async def downloadWebglVendors(urls):
 
 async def setAccessURLs(pageid):
     global accesskeys
-    with open(f"api/player/models/{pageid}/files_type2", "r", encoding="UTF-8") as f:
-        filejson = json.load(f)
-        accesskeys.append(filejson["base.url"].split("?")[-1])
-    with open(f"api/player/models/{pageid}/files_type3", "r", encoding="UTF-8") as f:
-        filejson = json.load(f)
-        accesskeys.append(filejson["templates"][0].split("?")[-1])
+
+    for i in range(1, 4):
+        url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
+        async with OUR_SESSION.get(url) as response:
+            if response.status == 200:
+                filejson = await response.json()
+
+                if i == 2:
+                    # Обработка файла типа 2
+                    accesskeys.append(filejson["base.url"].split("?")[-1])
+                elif i == 3:
+                    # Обработка файла типа 3
+                    accesskeys.append(filejson["templates"][0].split("?")[-1])
+            else:
+                mainMsgLog(f"Failed to fetch URL: {url}, status: {response.status}")
+
+    # for i in range(1, 4):  # file to url mapping
+    #     await downloadFile("FILE_TO_URL_JSON", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}", f"api/player/models/{pageid}/files_type{i}")
+    #
+    # with open(f"api/player/models/{pageid}/files_type2", "r", encoding="UTF-8") as f:
+    #     filejson = json.load(f)
+    #     #accesskeys.append(filejson["base.url"].split("?")[-1])
+    # with open(f"api/player/models/{pageid}/files_type3", "r", encoding="UTF-8") as f:
+    #     filejson = json.load(f)
+    #     accesskeys.append(filejson["templates"][0].split("?")[-1])
     player_api_v2 = await OUR_SESSION.get(f"https://my.matterport.com/api/v2/player/models/{pageid}")
     player_api_v2.raise_for_status()
     player_api_v2 = player_api_v2.json()
