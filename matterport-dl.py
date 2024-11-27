@@ -425,18 +425,15 @@ async def setAccessURLs(pageid):
     for i in range(1, 4):
         url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
         response = await OUR_SESSION.get(url)
+        response.raise_for_status()
         if True:
             filejson = response.json()
-
-            mainMsgLog(f"Try get accesskey: {url}, status:")
             if i == 2:
                 # Обработка файла типа 2
                 accesskeys.append(filejson["base.url"].split("?")[-1])
-                mainMsgLog(f"First accesskey: {accesskeys}")
             elif i == 3:
                 # Обработка файла типа 3
                 accesskeys.append(filejson["templates"][0].split("?")[-1])
-                mainMsgLog(f"Second accesskey: {accesskeys}")
         else:
             mainMsgLog(f"Failed to fetch URL: {url}, status:")
 
