@@ -179,7 +179,6 @@ async def downloadFileAndGetText(type, shouldExist, url, file, post_data=None, i
 async def downloadFile(type, shouldExist, url, file, post_data=None, always_download=False, retrying=False):
     global accesskeys, MAX_TASKS_SEMAPHORE, OUR_SESSION, pageId
 
-    mainMsgLog(f"LA: pageId: {pageId}, accesskeys: {accesskeys}")
     async with MAX_TASKS_SEMAPHORE:
         url = GetOrReplaceKey(url, False)
 
