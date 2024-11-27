@@ -425,7 +425,7 @@ async def setAccessURLs(pageid):
     for i in range(1, 4):
         url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
         response = await OUR_SESSION.get(url)
-        if response.status == 200:
+        if True:
             filejson = response.json()
 
             mainMsgLog(f"Try get accesskey: {url}, status: {response.status}")
