@@ -420,7 +420,6 @@ async def downloadWebglVendors(urls):
 async def setAccessURLs(pageid):
     global accesskeys
 
-    mainMsgLog("Try get accesskeys")
     for i in range(1, 4):
         url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
         response = await OUR_SESSION.get(url)
