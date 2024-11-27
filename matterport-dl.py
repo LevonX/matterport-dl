@@ -424,21 +424,21 @@ async def setAccessURLs(pageid):
     mainMsgLog("Try get accesskeys")
     for i in range(1, 4):
         url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
-        async with OUR_SESSION.get(url) as response:
-            if response.status == 200:
-                filejson = await response.json()
+        response = await OUR_SESSION.get(url)
+        if response.status == 200:
+            filejson = response.json()
 
-                mainMsgLog(f"Try get accesskey: {url}, status: {response.status}")
-                if i == 2:
-                    # Обработка файла типа 2
-                    accesskeys.append(filejson["base.url"].split("?")[-1])
-                    mainMsgLog(f"First accesskey: {accesskeys}")
-                elif i == 3:
-                    # Обработка файла типа 3
-                    accesskeys.append(filejson["templates"][0].split("?")[-1])
-                    mainMsgLog(f"Second accesskey: {accesskeys}")
-            else:
-                mainMsgLog(f"Failed to fetch URL: {url}, status: {response.status}")
+            mainMsgLog(f"Try get accesskey: {url}, status: {response.status}")
+            if i == 2:
+                # Обработка файла типа 2
+                accesskeys.append(filejson["base.url"].split("?")[-1])
+                mainMsgLog(f"First accesskey: {accesskeys}")
+            elif i == 3:
+                # Обработка файла типа 3
+                accesskeys.append(filejson["templates"][0].split("?")[-1])
+                mainMsgLog(f"Second accesskey: {accesskeys}")
+        else:
+            mainMsgLog(f"Failed to fetch URL: {url}, status: {response.status}")
 
     # for i in range(1, 4):  # file to url mapping
     #     await downloadFile("FILE_TO_URL_JSON", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}", f"api/player/models/{pageid}/files_type{i}")
