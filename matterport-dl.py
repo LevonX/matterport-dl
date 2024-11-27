@@ -427,12 +427,15 @@ async def setAccessURLs(pageid):
             if response.status == 200:
                 filejson = await response.json()
 
+                mainMsgLog(f"Try get accesskey: {url}, status: {response.status}")
                 if i == 2:
                     # Обработка файла типа 2
                     accesskeys.append(filejson["base.url"].split("?")[-1])
+                    mainMsgLog(f"First accesskey: {accesskeys}")
                 elif i == 3:
                     # Обработка файла типа 3
                     accesskeys.append(filejson["templates"][0].split("?")[-1])
+                    mainMsgLog(f"Second accesskey: {accesskeys}")
             else:
                 mainMsgLog(f"Failed to fetch URL: {url}, status: {response.status}")
 
