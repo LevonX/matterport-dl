@@ -420,21 +420,21 @@ async def downloadWebglVendors(urls):
 async def setAccessURLs(pageid):
     global accesskeys
 
-    for i in range(1, 4):
-        url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
-        response = await OUR_SESSION.get(url)
-        try:
-            response.raise_for_status()
-            filejson = response.json()
-            if i == 2:
-                # Обработка файла типа 2
-                accesskeys.append(filejson["base.url"].split("?")[-1])
-            elif i == 3:
-                # Обработка файла типа 3
-                accesskeys.append(filejson["templates"][0].split("?")[-1])
-        except Exception:
-            logging.info(f"Failed to fetch URL: {url}, status:")
-            pass
+    # for i in range(1, 4):
+    #     url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
+    #     response = await OUR_SESSION.get(url)
+    #     try:
+    #         response.raise_for_status()
+    #         filejson = response.json()
+    #         if i == 2:
+    #             # Обработка файла типа 2
+    #             accesskeys.append(filejson["base.url"].split("?")[-1])
+    #         elif i == 3:
+    #             # Обработка файла типа 3
+    #             accesskeys.append(filejson["templates"][0].split("?")[-1])
+    #     except Exception:
+    #         logging.info(f"Failed to fetch URL: {url}, status:")
+    #         pass
 
     # for i in range(1, 4):  # file to url mapping
     #     await downloadFile("FILE_TO_URL_JSON", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}", f"api/player/models/{pageid}/files_type{i}")
