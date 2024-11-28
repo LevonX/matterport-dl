@@ -54,9 +54,6 @@ def makeDirs(dirname):
 
 def mainMsgLog(msg: str):
     logging.info(msg)
-    logging.info("LA: ---->>>>>>")
-    logging.info(CLA.getCommandLineArg(CommandLineArg.CONSOLE_LOG))
-    logging.info(CommandLineArg.CONSOLE_LOG)
     if not CLA.getCommandLineArg(CommandLineArg.CONSOLE_LOG):
         print(msg)
 
