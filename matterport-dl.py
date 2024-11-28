@@ -433,7 +433,7 @@ async def setAccessURLs(pageid):
                 # Обработка файла типа 3
                 accesskeys.append(filejson["templates"][0].split("?")[-1])
         except Exception:
-            mainMsgLog(f"Failed to fetch URL: {url}, status:")
+            logging.info(f"Failed to fetch URL: {url}, status:")
             pass
 
     # for i in range(1, 4):  # file to url mapping
@@ -457,10 +457,8 @@ async def setAccessURLs(pageid):
         else:
             logging.debug("New hash not found")
     except Exception:
-        mainMsgLog(f"Failed to fetch URL: {player_api_v2}, status:")
+        logging.info(f"Failed to fetch URL: {player_api_v2}, status:")
         pass
-
-
 
 
 class AsyncDownloadItem:
