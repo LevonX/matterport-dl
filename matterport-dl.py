@@ -423,8 +423,8 @@ async def setAccessURLs(pageid):
     for i in range(1, 4):
         url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
         response = await OUR_SESSION.get(url)
-        response.raise_for_status()
-        if True:
+        try:
+            response.raise_for_status()
             filejson = response.json()
             if i == 2:
                 # Обработка файла типа 2
@@ -432,8 +432,9 @@ async def setAccessURLs(pageid):
             elif i == 3:
                 # Обработка файла типа 3
                 accesskeys.append(filejson["templates"][0].split("?")[-1])
-        else:
+        except Exception:
             mainMsgLog(f"Failed to fetch URL: {url}, status:")
+            pass
 
     # for i in range(1, 4):  # file to url mapping
     #     await downloadFile("FILE_TO_URL_JSON", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}", f"api/player/models/{pageid}/files_type{i}")
@@ -444,17 +445,22 @@ async def setAccessURLs(pageid):
     # with open(f"api/player/models/{pageid}/files_type3", "r", encoding="UTF-8") as f:
     #     filejson = json.load(f)
     #     accesskeys.append(filejson["templates"][0].split("?")[-1])
-    player_api_v2 = await OUR_SESSION.get(f"https://my.matterport.com/api/v2/player/models/{pageid}")
-    player_api_v2.raise_for_status()
-    player_api_v2 = player_api_v2.json()
+    try:
+        player_api_v2 = await OUR_SESSION.get(f"https://my.matterport.com/api/v2/player/models/{pageid}")
+        player_api_v2.raise_for_status()
+        player_api_v2 = player_api_v2.json()
+        match = re.search(r'(t=[^&]+)', player_api_v2['image'])
+        if match:
+            t_value = match.group(1)
+            accesskeys.append(t_value)
+            logging.debug(f"New hash: {t_value}")
+        else:
+            logging.debug("New hash not found")
+    except Exception:
+        mainMsgLog(f"Failed to fetch URL: {player_api_v2}, status:")
+        pass
 
-    match = re.search(r'(t=[^&]+)', player_api_v2['image'])
-    if match:
-        t_value = match.group(1)
-        accesskeys.append(t_value)
-        logging.debug(f"New hash: {t_value}")
-    else:
-        logging.debug("New hash not found")
+
 
 
 class AsyncDownloadItem:
