@@ -58,6 +58,7 @@ def mainMsgLog(msg: str):
     logging.info(CLA.getCommandLineArg(CommandLineArg.CONSOLE_LOG))
     logging.info(CommandLineArg.CONSOLE_LOG)
     if not CLA.getCommandLineArg(CommandLineArg.CONSOLE_LOG):
+        logging.info("Testing if")
         print(msg)
 
 
