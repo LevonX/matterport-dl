@@ -7,6 +7,8 @@ Usage is either running this program with the URL/pageid as an argument or calli
 """
 
 from __future__ import annotations
+
+import time
 import urllib.parse
 from curl_cffi import requests
 from enum import Enum
@@ -39,6 +41,7 @@ MAX_CONCURRENT_TASKS = 64  # while we could theoretically leave this unbound jus
 
 # Matterport uses various access keys for a page, when the primary key doesnt work we try some other ones,  note a single model can have 1400+ unique access keys not sure which matter vs not
 accesskeys = []
+last_get_accesskeys_time = 0
 
 
 dirsMadeCache: dict[str, bool] = {}
@@ -173,7 +176,6 @@ async def downloadFileAndGetText(type, shouldExist, url, file, post_data=None, i
             encoding = None
         async with aiofiles.open(file, readMode, encoding=encoding) as f:  # type: ignore - r and rb are handled but by diff overload groups
             return await f.read()
-
 
 # Add type parameter, shortResourcePath, shouldExist
 async def downloadFile(type, shouldExist, url, file, post_data=None, always_download=False):
@@ -407,7 +409,12 @@ async def downloadWebglVendors(urls):
 
 
 async def setAccessURLs(pageid):
-    global accesskeys
+    global accesskeys, last_get_accesskeys_time
+
+    elapsed_time = time.time() - last_get_accesskeys_time
+    if elapsed_time <= 600:
+        return
+
     logging.info(f"LA: Starting get new accesskeys")
     logging.info(f"LA: Previous accesskeys: {accesskeys}")
     accesskeys = []
