@@ -419,6 +419,9 @@ async def downloadWebglVendors(urls):
 
 async def setAccessURLs(pageid):
     global accesskeys
+    logging.info(f"LA: Starting get new accesskeys")
+    logging.info(f"LA: Previous accesskeys: {accesskeys}")
+    accesskeys = []
 
     for i in range(1, 4):
         url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
@@ -459,6 +462,8 @@ async def setAccessURLs(pageid):
     except Exception:
         logging.info(f"Failed to fetch URL: {player_api_v2}, status:")
         pass
+
+    logging.info(f"LA: New accesskeys: {accesskeys}")
 
 
 class AsyncDownloadItem:
