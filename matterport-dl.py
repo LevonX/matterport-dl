@@ -415,6 +415,7 @@ async def setAccessURLs(pageid):
     if elapsed_time <= 600:
         logging.info("LA: Less than 600 seconds have passed, skipping getting keys")
         return
+    last_get_accesskeys_time = time.time()
 
     logging.info(f"LA: Starting get new accesskeys")
     logging.info(f"LA: Previous accesskeys: {accesskeys}")
