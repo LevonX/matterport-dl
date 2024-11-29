@@ -176,9 +176,8 @@ async def downloadFileAndGetText(type, shouldExist, url, file, post_data=None, i
 
 
 # Add type parameter, shortResourcePath, shouldExist
-async def downloadFile(type, shouldExist, url, file, post_data=None, always_download=False, retrying=False):
+async def downloadFile(type, shouldExist, url, file, post_data=None, always_download=False):
     global accesskeys, MAX_TASKS_SEMAPHORE, OUR_SESSION, pageId
-
     async with MAX_TASKS_SEMAPHORE:
         url = GetOrReplaceKey(url, False)
 
@@ -190,46 +189,36 @@ async def downloadFile(type, shouldExist, url, file, post_data=None, always_down
         if "?" in file:
             file = file.split("?")[0]
 
-        if not CLA.getCommandLineArg(CommandLineArg.DOWNLOAD) or (os.path.exists(file) and not always_download):  # skip already downloaded files except index.html which is really json possibly with newer access keys?
+        if not CLA.getCommandLineArg(CommandLineArg.DOWNLOAD) or (os.path.exists(file) and not always_download):  # skip already downloaded files except idnex.html which is really json possibly wit hnewer access keys?
             logUrlDownloadSkipped(type, file, url, "")
             return
         reqId = logUrlDownloadStart(type, file, url, "", shouldExist)
-
         try:
-            # Attempt initial download
             response = await OUR_SESSION.get(url)
-            response.raise_for_status()
+            response.raise_for_status()  # Raise an exception if the response has an error status code
             async with aiofiles.open(file, "wb") as f:
                 await f.write(response.content)
             logUrlDownloadFinish(type, file, url, "", shouldExist, reqId)
             return
         except Exception as err:
-            # Log the first failure
-            logUrlDownloadFinish(type, file, url, "", shouldExist, reqId, err)
-
-            # Try with different accesskeys
+            await setAccessURLs(pageId)
+            # Try again but with different accesskeys
             if "?t=" in url:
                 for accessurl in accesskeys:
-                    url2 = f"{url.split('?')[0]}?{accessurl}"
+                    url2 = ""
                     try:
+                        url2 = f"{url.split('?')[0]}?{accessurl}"
                         response = await OUR_SESSION.get(url2)
-                        response.raise_for_status()
+                        response.raise_for_status()  # Raise an exception if the response has an error status code
+
                         async with aiofiles.open(file, "wb") as f:
                             await f.write(response.content)
                         logUrlDownloadFinish(type, file, url2, "", shouldExist, reqId)
                         return
                     except Exception as err2:
                         logUrlDownloadFinish(type, file, url2, "", shouldExist, reqId, err2, True)
-
-            # If still failing, try setting new access keys (if not already retried)
-            if not retrying and pageId is not None:
-                try:
-                    await setAccessURLs(pageId)
-                    return await downloadFile(type, shouldExist, url, file, always_download, retrying=True)
-                except Exception as set_err:
-                    logUrlDownloadFinish(type, file, url, "", shouldExist, reqId, set_err)
-
-            # Final failure
+                        pass
+            logUrlDownloadFinish(type, file, url, "", shouldExist, reqId, err)
             raise err
 
 
