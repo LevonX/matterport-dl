@@ -234,7 +234,7 @@ async def downloadGraphModels(pageid):
     for key in GRAPH_DATA_REQ:
         file_path_base = f"api/mp/models/graph_{key}"
         file_path = f"{file_path_base}.json"
-        text = await downloadFileWithJSONPostAndGetText("GRAPH_MODEL", True, "https://my.matterport.com/api/mp/models/graph", file_path, GRAPH_DATA_REQ[key], key, CLA.getCommandLineArg(CommandLineArg.ALWAYS_DOWNLOAD_GRAPH_REQS))
+        text = await downloadFileWithJSONPostAndGetText("GRAPH_MODEL", True, "https://my.matterport.com/api/mp/models/graph", file_path, GRAPH_DATA_REQ[key], key, True) # CLA.getCommandLineArg(CommandLineArg.ALWAYS_DOWNLOAD_GRAPH_REQS)
 
         # Patch (graph_GetModelDetails.json & graph_GetSnapshots.json and such) URLs to Get files form local server instead of https://cdn-2.matterport.com/
         if CLA.getCommandLineArg(CommandLineArg.MANUAL_HOST_REPLACEMENT):
@@ -412,10 +412,13 @@ async def setAccessURLs(pageid):
     global accesskeys, last_get_accesskeys_time
 
     elapsed_time = time.time() - last_get_accesskeys_time
-    if elapsed_time <= 600:
-        logging.info("LA: Less than 600 seconds have passed, skipping getting keys")
+    if elapsed_time <= 280:
+        logging.info("LA: Less than 280 seconds have passed, skipping getting keys")
         return
     last_get_accesskeys_time = time.time()
+
+    # Force download graphs for updating keys
+    await downloadGraphModels(pageid)
 
     logging.info(f"LA: Starting get new accesskeys")
     logging.info(f"LA: Previous accesskeys: {accesskeys}")
@@ -868,12 +871,16 @@ async def AdvancedAssetDownload(base_page_text: str):
                         raise
             except:
                 raise
-
+            mainMsgLog("Starting get mesh_tiles")
             for file in range(6):
+                mainMsgLog(f"File: {file}")
                 try:
                     tileseUrlTemplate = tilesetUrlTemplate.replace("<file>", f"{file}.json")
+                    print(tileseUrlTemplate)
                     getFileText = await downloadFileAndGetText("ADV_TILESET_JSON", False, tileseUrlTemplate, urlparse(tileseUrlTemplate).path[1:])
+                    print(getFileText)
                     fileUris = re.findall(r'"uri":"(.*?)"', getFileText)
+                    print(fileUris)
                     fileUris.sort()
                     for fileuri in fileUris:
                         fileUrl = tilesetUrlTemplate.replace("<file>", fileuri)
