@@ -417,12 +417,21 @@ async def setAccessURLs(pageid):
         return
     last_get_accesskeys_time = time.time()
 
-    # Force download graphs for updating keys
-    await downloadGraphModels(pageid)
-
     logging.info(f"LA: Starting get new accesskeys")
     logging.info(f"LA: Previous accesskeys: {accesskeys}")
     accesskeys = []
+
+    # Force download graphs for updating keys
+    await downloadGraphModels(pageid)
+
+    try:
+        with open("api/mp/models/graph_GetModelDetails.json", "r", encoding="UTF-8") as f:
+            filejson = json.load(f)
+            accesskeys.append(filejson["data"]["model"]["assets"]["meshes"][0]["url"].split("?")[-1])
+            accesskeys.append(filejson["data"]["model"]["assets"]["textures"][0]["urlTemplate"].split("?")[-1])
+            accesskeys.append(filejson["data"]["model"]["assets"]["tilesets"][0]["urlTemplate"].split("?")[-1])
+    except Exception:
+        logging.exception("Unable to open graph model details output json something probably wrong.....")
 
     for i in range(1, 4):
         url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
