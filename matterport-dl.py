@@ -433,6 +433,20 @@ async def setAccessURLs(pageid):
     except Exception:
         logging.exception("Unable to open graph model details output json something probably wrong.....")
 
+    try:
+        url_ga = f"https://my.matterport.com/show/?m={pageid}"
+        base_page_text = await downloadFileAndGetText("MAIN", True, url_ga, "index.html", always_download=True)
+        match = re.search(r'"(https://cdn-\d*\.matterport\.com/models/[a-z0-9\-_/.]*/)([{}0-9a-z_/<>.]+)(\?t=.*?)"',
+                          base_page_text.encode("utf-8", errors="ignore").decode("unicode-escape"))
+        if match:
+            accesskeys.append(match.group(3))
+            #accessurl = f"{match.group(1)}~/{{filename}}{match.group(3)}"
+        else:
+            raise Exception(
+                f"Can't find urls, try the main page: {url_ga} in a browser to make sure it loads the model correctly")
+    except Exception:
+        logging.warning("Can't find urls, try the main page: {url} in a browser to make sure it loads the model correctly")
+
     for i in range(1, 4):
         url = f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}"
         response = await OUR_SESSION.get(url)
