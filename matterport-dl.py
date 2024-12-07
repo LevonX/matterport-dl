@@ -87,11 +87,11 @@ def getVariants():
 
 
 async def downloadUUID(accessurl, uuid):
-    meshes_accessurl = await getNewAccessUrl(uuid, accessurl, "meshes")
+    meshes_accessurl = await getNewAccessUrl(pageId, accessurl, "meshes")
     await downloadFile("UUID_DAM50K", True, meshes_accessurl.format(filename=f"{uuid}_50k.dam"), f"{uuid}_50k.dam")
     shutil.copy(f"{uuid}_50k.dam", f"..{os.path.sep}{uuid}_50k.dam")
     cur_file = ""
-    tilesets_accessurl = await getNewAccessUrl(uuid, accessurl, "tilesets")
+    tilesets_accessurl = await getNewAccessUrl(pageId, accessurl, "tilesets")
     try:
         for i in range(1000):  # basically download until on first failure and assume that is all of them, maybe we should be going to on first 404 or osmething:)
             cur_file = tilesets_accessurl.format(filename=f"{uuid}_50k_texture_jpg_high/{uuid}_50k_{i:03d}.jpg")
