@@ -87,14 +87,16 @@ def getVariants():
 
 
 async def downloadUUID(accessurl, uuid):
-    await downloadFile("UUID_DAM50K", True, accessurl.format(filename=f"{uuid}_50k.dam"), f"{uuid}_50k.dam")
+    meshes_accessurl = await getNewAccessUrl(uuid, accessurl, "meshes")
+    await downloadFile("UUID_DAM50K", True, meshes_accessurl.format(filename=f"{uuid}_50k.dam"), f"{uuid}_50k.dam")
     shutil.copy(f"{uuid}_50k.dam", f"..{os.path.sep}{uuid}_50k.dam")
     cur_file = ""
+    tilesets_accessurl = await getNewAccessUrl(uuid, accessurl, "tilesets")
     try:
         for i in range(1000):  # basically download until on first failure and assume that is all of them, maybe we should be going to on first 404 or osmething:)
-            cur_file = accessurl.format(filename=f"{uuid}_50k_texture_jpg_high/{uuid}_50k_{i:03d}.jpg")
+            cur_file = tilesets_accessurl.format(filename=f"{uuid}_50k_texture_jpg_high/{uuid}_50k_{i:03d}.jpg")
             await downloadFile("UUID_TEXTURE_HIGH", True, cur_file, f"{uuid}_50k_texture_jpg_high/{uuid}_50k_{i:03d}.jpg")
-            cur_file = accessurl.format(filename=f"{uuid}_50k_texture_jpg_low/{uuid}_50k_{i:03d}.jpg")
+            cur_file = tilesets_accessurl.format(filename=f"{uuid}_50k_texture_jpg_low/{uuid}_50k_{i:03d}.jpg")
             await downloadFile("UUID_TEXTURE_LOW", True, cur_file, f"{uuid}_50k_texture_jpg_low/{uuid}_50k_{i:03d}.jpg")
     except Exception as ex:
         logging.warning(f"Exception downloading file: {cur_file} of: {str(ex)}")
@@ -102,11 +104,12 @@ async def downloadUUID(accessurl, uuid):
 
 
 async def downloadSweeps(accessurl, sweeps):
+    textures_accessurl = await getNewAccessUrl(pageId, accessurl, "textures")
     toDownload: list[AsyncDownloadItem] = []
     for sweep in sweeps:
         sweep = sweep.replace("-", "")
         for variant in getVariants():
-            toDownload.append(AsyncDownloadItem("MODEL_SWEEPS", True, accessurl.format(filename=f"tiles/{sweep}/{variant}") + "&imageopt=1", f"tiles/{sweep}/{variant}"))
+            toDownload.append(AsyncDownloadItem("MODEL_SWEEPS", True, textures_accessurl.format(filename=f"tiles/{sweep}/{variant}") + "&imageopt=1", f"tiles/{sweep}/{variant}"))
     await AsyncArrayDownload(toDownload)
 
 
@@ -324,6 +327,32 @@ def _logUrlDownload(logLevel, logPrefix, type, localTarget, url, additionalParam
 
     logging.log(logLevel, f"{logPrefix} REQ for {type} {requestID}: should exist: {shouldExist} {optionalResult} File: {localTarget} at url: {url} {additionalParams}")
 
+
+async def getNewAccessUrl(pageid, accessurl, asset):
+    try:
+        url = f"https://my.matterport.com/show/?m={pageid}"
+        base_page_text = await GetTextOnlyRequest("MAIN", True, url)
+
+        pattern = r'window\.MP_PREFETCHED_MODELDATA\s*=\s*parseJSON\("(.*)"\)'
+        match = re.search(pattern, base_page_text.encode("utf-8", errors="ignore").decode("unicode-escape"))
+
+        if match:
+            data = json.loads(match.group(1))
+            if asset == "meshes":
+                url_template = data["queries"]["GetModelPrefetch"]["data"]["model"]["assets"][asset][0]["url"]
+            else:
+                url_template = data["queries"]["GetModelPrefetch"]["data"]["model"]["assets"][asset][0]["urlTemplate"]
+            match = re.search(r'\?t=([^&]+)', url_template)
+            if match:
+                accesskey_asset = match.group(1)
+                accessurl_asset = re.sub(r'\?t=[^&]*', f'?t={accesskey_asset}', accessurl)
+                return accessurl_asset
+            else:
+                raise Exception("Failed to find access key")
+        else:
+            raise Exception("Failed to find model data")
+    except Exception as err:
+        logging.error(f"LA_LOG: {err}")
 
 async def downloadAssets(base):
     global PROGRESS
