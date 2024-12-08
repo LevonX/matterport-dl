@@ -892,6 +892,7 @@ async def AdvancedAssetDownload(base_page_text: str):
         for tileset in base_node["assets"]["tilesets"]:  # normally just one tileset
             tilesetUrl = tileset["url"]
             tilesetUrlTemplate: str = tileset["urlTemplate"]
+            tilesetUrlTemplate = await getNewAccessUrl(pageId, tilesetUrlTemplate, "tilesets")
             if "<file>" not in tilesetUrlTemplate:  # the graph details does have it but the cached data does not
                 tilesetUrlTemplate = tilesetUrlTemplate.replace("?", "<file>?")
             tilesetBaseFile = urlparse(tilesetUrl).path[1:]
@@ -923,16 +924,16 @@ async def AdvancedAssetDownload(base_page_text: str):
                         raise
             except:
                 raise
-            mainMsgLog("Starting get mesh_tiles")
+            # mainMsgLog("Starting get mesh_tiles")
             for file in range(6):
                 mainMsgLog(f"File: {file}")
                 try:
                     tileseUrlTemplate = tilesetUrlTemplate.replace("<file>", f"{file}.json")
-                    print(tileseUrlTemplate)
+                    # print(tileseUrlTemplate)
                     getFileText = await downloadFileAndGetText("ADV_TILESET_JSON", False, tileseUrlTemplate, urlparse(tileseUrlTemplate).path[1:])
-                    print(getFileText)
+                    # print(getFileText)
                     fileUris = re.findall(r'"uri":"(.*?)"', getFileText)
-                    print(fileUris)
+                    # print(fileUris)
                     fileUris.sort()
                     for fileuri in fileUris:
                         fileUrl = tilesetUrlTemplate.replace("<file>", fileuri)
@@ -946,8 +947,9 @@ async def AdvancedAssetDownload(base_page_text: str):
 
         for texture in base_node["assets"]["textures"]:
             try:  # on first exception assume we have all the ones needed so cant use array download as need to know which fails (other than for crops)
+                texture_url = await getNewAccessUrl(pageId, texture["urlTemplate"], "textures")
                 for i in range(1000):
-                    full_text_url = texture["urlTemplate"].replace("<texture>", f"{i:03d}")
+                    full_text_url = texture_url.replace("<texture>", f"{i:03d}")
                     crop_to_do = []
                     if texture["quality"] == "high":
                         crop_to_do = ADV_CROP_FETCH
