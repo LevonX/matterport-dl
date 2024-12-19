@@ -369,14 +369,14 @@ async def downloadAssets(base):
     assets = ["js/browser-check.js", "css/showcase.css", "css/unsupported_browser.css", "cursors/grab.png", "cursors/grabbing.png", "cursors/zoom-in.png", "cursors/zoom-out.png", "locale/strings.json", "css/ws-blur.css", "css/core.css", "css/split.css", "css/late.css", "matterport-logo.svg"]
 
     # downloadFile("my.matterport.com/favicon.ico", "favicon.ico")
-    file = "js/showcase.js"
-    typeDict = {file: "STATIC_JS"}
-    await downloadFile("STATIC_ASSET", True, "https://matterport.com/nextjs-assets/images/favicon.ico", "favicon.ico")  # mainly to avoid the 404
-    showcase_cont = await downloadFileAndGetText(typeDict[file], True, base + file, file, always_download=True)
+    # file = "js/showcase.js"
+    typeDict = {}
+    # await downloadFile("STATIC_ASSET", True, "https://matterport.com/nextjs-assets/images/favicon.ico", "favicon.ico")  # mainly to avoid the 404
+    # showcase_cont = await downloadFileAndGetText(typeDict[file], True, base + file, file, always_download=True)
 
     # lets try to extract the js files it might be loading and make sure we know them
-    js_extracted = re.findall(r"\.e\(([0-9]{2,3})\)", showcase_cont)
-    js_extracted.sort()
+    # js_extracted = re.findall(r"\.e\(([0-9]{2,3})\)", showcase_cont)
+    # js_extracted.sort()
     for asset in assets:
         typeDict[asset] = "STATIC_ASSET"
 
@@ -385,11 +385,11 @@ async def downloadAssets(base):
         typeDict[file] = "STATIC_JS"
         assets.append(file)
 
-    for js in js_extracted:
-        file = f"js/{js}.js"
-        if file not in assets:
-            typeDict[file] = "DISCOVERED_JS"
-            assets.append(file)
+    # for js in js_extracted:
+    #     file = f"js/{js}.js"
+    #     if file not in assets:
+    #         typeDict[file] = "DISCOVERED_JS"
+    #         assets.append(file)
 
     for image in image_files:
         if not image.endswith(".jpg") and not image.endswith(".svg"):
@@ -606,9 +606,9 @@ async def downloadMainAssets(pageid, accessurl):
     await downloadSweeps(accessurl, modeldata["sweeps"])
 
 async def downloadAttachments():
-    with open('api/mp/models/graph_GetModelViewPrefetch.json', "r", encoding="UTF-8") as mvp:
-        json_data = json.load(mvp)
     try:
+        with open('api/mp/models/graph_GetModelViewPrefetch.json', "r", encoding="UTF-8") as mvp:
+            json_data = json.load(mvp)
         for mattertags in json_data['data']['model']['mattertags']:
             try:
                 for attachment in mattertags['fileAttachments']:
@@ -618,6 +618,26 @@ async def downloadAttachments():
                 continue
     except KeyError:
         return False
+    except Exception as e:
+        logging.error(e)
+        mainMsgLog("Failed to download attachments")
+
+async def downloadPluginAttachments():
+    try:
+        with open('api/mp/models/graph_GetModelViewPrefetch.json', "r", encoding="UTF-8") as mvp:
+            json_data = json.load(mvp)
+        for mattertags in json_data['data']['model']['mattertags']:
+            try:
+                for attachment in mattertags['fileAttachments']:
+                    file_path = urllib.parse.urlparse(attachment['url']).path.removeprefix("/")
+                    await downloadFile("ATTACHMENTS", True, attachment['url'], file_path)
+            except KeyError:
+                continue
+    except KeyError:
+        return False
+    except Exception as e:
+        logging.error(e)
+        mainMsgLog("Failed to download attachments")
 
 async def patchGraphs(directory: str, pageID: str):
     async def process_file(file_path: str):
@@ -796,7 +816,7 @@ async def downloadCapture(pageid):
     await downloadAssets(staticbase)
     await downloadWebglVendors(webglVendors)
     # Patch showcase.js to fix expiration issue and some other changes for local hosting
-    patchShowcase()
+    # patchShowcase()
     mainMsgLog("Downloading model info...")
     await downloadInfo(pageid)
     mainMsgLog("Downloading plugins...")
