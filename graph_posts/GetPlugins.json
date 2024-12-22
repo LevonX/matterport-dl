@@ -1,0 +1,7 @@
+{
+  "operationName": "GetPlugins",
+  "query": "query GetPlugins($modelId: ID!) { model(id: $modelId) { id sdkPlugins { id name currentVersion description versions { version requiredPolicies } fileAttachments { id created filename url validUntil bytes mimeType } } } }",
+  "variables": {
+    "modelId": "[MATTERPORT_MODEL_ID]"
+  }
+}

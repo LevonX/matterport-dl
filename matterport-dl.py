@@ -624,11 +624,11 @@ async def downloadAttachments():
 
 async def downloadPluginAttachments():
     try:
-        with open('api/mp/models/graph_GetModelViewPrefetch.json', "r", encoding="UTF-8") as mvp:
-            json_data = json.load(mvp)
-        for mattertags in json_data['data']['model']['mattertags']:
+        with open('api/mp/models/graph_GetPlugins.json', "r", encoding="UTF-8") as plugins:
+            json_data = json.load(plugins)
+        for sdk_plugins in json_data['data']['model']['sdkPlugins']:
             try:
-                for attachment in mattertags['fileAttachments']:
+                for attachment in sdk_plugins['fileAttachments']:
                     file_path = urllib.parse.urlparse(attachment['url']).path.removeprefix("/")
                     await downloadFile("ATTACHMENTS", True, attachment['url'], file_path)
             except KeyError:
@@ -637,7 +637,7 @@ async def downloadPluginAttachments():
         return False
     except Exception as e:
         logging.error(e)
-        mainMsgLog("Failed to download attachments")
+        mainMsgLog("Failed to download plugins attachments")
 
 async def patchGraphs(directory: str, pageID: str):
     async def process_file(file_path: str):
@@ -825,6 +825,8 @@ async def downloadCapture(pageid):
     await downloadPics(pageid)
     mainMsgLog("Downloading attachments...")
     await downloadAttachments()
+    mainMsgLog("Downloading plugins attachments...")
+    await downloadPluginAttachments()
     mainMsgLog("Patch Graphs...")
     await patchGraphs("api/mp/models", pageid)
     if CLA.getCommandLineArg(CommandLineArg.MAIN_ASSET_DOWNLOAD):
