@@ -641,7 +641,7 @@ async def downloadPluginAttachments():
 
 async def downloadFloorplansAssets():
     try:
-        with open('api/mp/models/graph_GetFloorplans.json', "r", encoding="UTF-8") as file_data:
+        with open('api/mp/models/graph_Floorplans.json', "r", encoding="UTF-8") as file_data:
             json_data = json.load(file_data)
         for floor_plan in json_data['data']['model']['assets']['floorplans']:
             try:
