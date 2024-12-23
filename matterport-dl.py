@@ -639,6 +639,22 @@ async def downloadPluginAttachments():
         logging.error(e)
         mainMsgLog("Failed to download plugins attachments")
 
+async def downloadFloorplansAssets():
+    try:
+        with open('api/mp/models/graph_Floorplans.json', "r", encoding="UTF-8") as file_data:
+            json_data = json.load(file_data)
+        for floor_plan in json_data['data']['model']['assets']['floorplans']:
+            try:
+                file_path = urllib.parse.urlparse(floor_plan['url']).path.removeprefix("/")
+                await downloadFile("FLOOR_PLAN", True, floor_plan['url'], file_path)
+            except KeyError:
+                continue
+    except KeyError:
+        return False
+    except Exception as e:
+        logging.error(e)
+        mainMsgLog("Failed to download Floor plans assets")
+
 async def patchGraphs(directory: str, pageID: str):
     async def process_file(file_path: str):
         async with aiofiles.open(file_path, mode='r', encoding='utf-8') as file:
@@ -827,6 +843,8 @@ async def downloadCapture(pageid):
     await downloadAttachments()
     mainMsgLog("Downloading plugins attachments...")
     await downloadPluginAttachments()
+    mainMsgLog("Downloading Floor plans assets...")
+    await downloadFloorplansAssets()
     mainMsgLog("Patch Graphs...")
     await patchGraphs("api/mp/models", pageid)
     if CLA.getCommandLineArg(CommandLineArg.MAIN_ASSET_DOWNLOAD):
