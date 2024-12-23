@@ -653,7 +653,7 @@ async def downloadFloorplansAssets():
         return False
     except Exception as e:
         logging.error(e)
-        mainMsgLog("Failed to download Floor plans assets")
+        mainMsgLog(f"Failed to download Floor plans assets: {e}")
 
 async def patchGraphs(directory: str, pageID: str):
     async def process_file(file_path: str):
