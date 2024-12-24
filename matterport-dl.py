@@ -181,10 +181,11 @@ async def downloadFileAndGetText(type, shouldExist, url, file, post_data=None, i
             return await f.read()
 
 # Add type parameter, shortResourcePath, shouldExist
-async def downloadFile(type, shouldExist, url, file, post_data=None, always_download=False):
+async def downloadFile(type, shouldExist, url, file, post_data=None, always_download=False, get_or_replace_key=True):
     global accesskeys, MAX_TASKS_SEMAPHORE, OUR_SESSION, pageId
     async with MAX_TASKS_SEMAPHORE:
-        url = GetOrReplaceKey(url, False)
+        if get_or_replace_key:
+            url = GetOrReplaceKey(url, False)
 
         if not CLA.getCommandLineArg(CommandLineArg.TILDE):
             file = file.replace("~", "_")
@@ -646,7 +647,7 @@ async def downloadFloorplansAssets():
         for floor_plan in json_data['data']['model']['assets']['floorplans']:
             try:
                 file_path = urllib.parse.urlparse(floor_plan['url']).path.removeprefix("/")
-                await downloadFile("FLOOR_PLAN", True, floor_plan['url'], file_path)
+                await downloadFile("FLOOR_PLAN", True, floor_plan['url'], file_path, get_or_replace_key=False)
             except KeyError:
                 continue
     except KeyError:
