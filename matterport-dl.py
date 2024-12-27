@@ -839,7 +839,10 @@ async def downloadCapture(pageid):
     mainMsgLog("Downloading plugins...")
     await downloadPlugins(pageid)
     mainMsgLog("Downloading images...")
-    await downloadPics(pageid)
+    try:
+        await downloadPics(pageid)
+    except Exception:
+        mainMsgLog("Skip downloading images due to error")
     mainMsgLog("Downloading attachments...")
     await downloadAttachments()
     mainMsgLog("Downloading plugins attachments...")
@@ -850,7 +853,10 @@ async def downloadCapture(pageid):
     await patchGraphs("api/mp/models", pageid)
     if CLA.getCommandLineArg(CommandLineArg.MAIN_ASSET_DOWNLOAD):
         mainMsgLog("Downloading primary model assets...")
-        await downloadMainAssets(pageid, accessurl)
+        try:
+            await downloadMainAssets(pageid, accessurl)
+        except Exception:
+            mainMsgLog("Skip downloading primary model assets due to error")
     os.chdir(page_root_dir)
     open("api/v1/event", "a").close()
     mainMsgLog(f"Done, {PROGRESS}!")
