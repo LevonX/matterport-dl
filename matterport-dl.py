@@ -567,8 +567,8 @@ async def downloadInfo(pageid):
     makeDirs("api/mp/models")
     with open("api/mp/models/graph", "w", encoding="UTF-8") as f:
         f.write('{"data": "empty"}')
-    # for i in range(1, 4):  # file to url mapping
-    #     await downloadFile("FILE_TO_URL_JSON", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}", f"api/player/models/{pageid}/files_type{i}")
+    for i in range(1, 4):  # file to url mapping
+        await downloadFile("FILE_TO_URL_JSON", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type={i}", f"api/player/models/{pageid}/files_type{i}")
     await setAccessURLs(pageid)
 
 
