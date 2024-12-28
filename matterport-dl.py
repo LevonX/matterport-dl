@@ -802,8 +802,8 @@ async def downloadCapture(pageid):
         raise Exception(f"Can't find urls, try the main page: {url} in a browser to make sure it loads the model correctly")
 
     # get a valid access key, there are a few but this is a common client used one, this also makes sure it is fresh
-    # file_type_content = await GetTextOnlyRequest("MAIN", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type=3")  # get a valid access key, there are a few but this is a common client used one, this also makes sure it is fresh
-    # GetOrReplaceKey(file_type_content, True)
+    file_type_content = await GetTextOnlyRequest("MAIN", True, f"https://my.matterport.com/api/player/models/{pageid}/files?type=3")  # get a valid access key, there are a few but this is a common client used one, this also makes sure it is fresh
+    GetOrReplaceKey(file_type_content, True)
 
     mainMsgLog("Downloading graph model data...")  # need the details one for advanced download
     await downloadGraphModels(pageid)
