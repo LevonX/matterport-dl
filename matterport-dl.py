@@ -787,12 +787,12 @@ async def downloadCapture(pageid):
 
     staticbase = re.search(r'<base href="(https://static.matterport.com/.*?)">', base_page_text).group(1)  # type: ignore - may be None
 
-    threeMin = re.search(r"https://static.matterport.com/webgl-vendors/three/[a-z0-9\-_/.]*/three.min.js", base_page_text).group()  # type: ignore - may be None
-    dracoWasmWrapper = threeMin.replace("three.min.js", "libs/draco/gltf/draco_wasm_wrapper.js")
-    dracoDecoderWasm = threeMin.replace("three.min.js", "libs/draco/gltf/draco_decoder.wasm")
-    basisTranscoderWasm = threeMin.replace("three.min.js", "libs/basis/basis_transcoder.wasm")
-    basisTranscoderJs = threeMin.replace("three.min.js", "libs/basis/basis_transcoder.js")
-    webglVendors = [threeMin, dracoWasmWrapper, dracoDecoderWasm, basisTranscoderWasm, basisTranscoderJs]
+    # threeMin = re.search(r"https://static.matterport.com/webgl-vendors/three/[a-z0-9\-_/.]*/three.min.js", base_page_text).group()  # type: ignore - may be None
+    # dracoWasmWrapper = threeMin.replace("three.min.js", "libs/draco/gltf/draco_wasm_wrapper.js")
+    # dracoDecoderWasm = threeMin.replace("three.min.js", "libs/draco/gltf/draco_decoder.wasm")
+    # basisTranscoderWasm = threeMin.replace("three.min.js", "libs/basis/basis_transcoder.wasm")
+    # basisTranscoderJs = threeMin.replace("three.min.js", "libs/basis/basis_transcoder.js")
+    # webglVendors = [threeMin, dracoWasmWrapper, dracoDecoderWasm, basisTranscoderWasm, basisTranscoderJs]
     match = re.search(r'"(https://cdn-\d*\.matterport\.com/models/[a-z0-9\-_/.]*/)([{}0-9a-z_/<>.]+)(\?t=.*?)"', base_page_text.encode("utf-8", errors="ignore").decode("unicode-escape"))  # some non-english matterport pages have unicode escapes for even the generic url chars
 
     if match:
@@ -831,7 +831,7 @@ async def downloadCapture(pageid):
     mainMsgLog("Downloading static files...")
 
     await downloadAssets(staticbase)
-    await downloadWebglVendors(webglVendors)
+    # await downloadWebglVendors(webglVendors)
     # Patch showcase.js to fix expiration issue and some other changes for local hosting
     # patchShowcase()
     mainMsgLog("Downloading model info...")
